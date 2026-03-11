@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tier List Organizer</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        color: #1f2937;
+        background: #f3f4f6;
+      }
+      body {
+        margin: 0;
+        padding: 24px;
+      }
+      .app {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        gap: 20px;
+      }
+      .panel {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        padding: 16px;
+      }
+      h1, h2 {
+        margin: 0 0 12px;
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 10px;
+      }
+      input, button {
+        font: inherit;
+        padding: 9px 12px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+      }
+      button {
+        border: none;
+        background: #2563eb;
+        color: white;
+        cursor: pointer;
+      }
+      button:hover { background: #1d4ed8; }
+      .tier-list {
+        display: grid;
+        gap: 8px;
+      }
+      .tier-row {
+        display: grid;
+        grid-template-columns: 130px 1fr;
+        min-height: 88px;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .tier-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #111827;
+        border-right: 2px solid rgba(0, 0, 0, 0.1);
+      }
+      .tier-items {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px;
+        background: #fff;
+      }
+      .tier-items.over, #item-pool.over {
+        outline: 3px dashed #2563eb;
+        outline-offset: -3px;
+      }
+      .item {
+        background: #111827;
+        color: #fff;
+        padding: 8px 10px;
+        border-radius: 8px;
+        user-select: none;
+        cursor: grab;
+      }
+      .item:active { cursor: grabbing; }
+      #item-pool {
+        min-height: 62px;
+        border: 2px dashed #cbd5e1;
+        border-radius: 8px;
+        padding: 10px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .tier-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .small { font-size: 0.9rem; color: #4b5563; }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section class="panel">
+        <h1>Tier List Organizer</h1>
+        <div class="controls">
+          <input id="item-input" placeholder="Type item name (e.g. Pizza)" />
+          <button id="add-item">Add Item</button>
+          <input id="row-input" placeholder="New tier label (e.g. Z)" />
+          <button id="add-row">Add Tier Row</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="tier-meta">
+          <h2>Tiers</h2>
+          <span class="small">Click a tier label to rename it</span>
+        </div>
+        <div id="tier-list" class="tier-list"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Unranked Items</h2>
+        <div id="item-pool" aria-label="Unranked items drop zone"></div>
+      </section>
+    </main>
+
+    <script>
+      const tierColors = ['#ff7f7f', '#ffbf7f', '#ffe67f', '#c6f68d', '#86efac', '#93c5fd', '#a5b4fc', '#d8b4fe'];
+      const tiers = ['S', 'A', 'B', 'C', 'D'];
+      const tierList = document.getElementById('tier-list');
+      const itemPool = document.getElementById('item-pool');
+
+      const createItem = (text) => {
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.draggable = true;
+        item.textContent = text;
+        item.id = `item-${crypto.randomUUID()}`;
+        item.addEventListener('dragstart', (event) => {
+          event.dataTransfer.setData('text/plain', item.id);
+        });
+        return item;
+      };
+
+      const enableDropZone = (zone) => {
+        zone.addEventListener('dragover', (event) => {
+          event.preventDefault();
+          zone.classList.add('over');
+        });
+        zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+        zone.addEventListener('drop', (event) => {
+          event.preventDefault();
+          zone.classList.remove('over');
+          const itemId = event.dataTransfer.getData('text/plain');
+          const dragged = document.getElementById(itemId);
+          if (dragged) {
+            zone.appendChild(dragged);
+          }
+        });
+      };
+
+      const renderTierRow = (labelText, index) => {
+        const row = document.createElement('div');
+        row.className = 'tier-row';
+
+        const label = document.createElement('button');
+        label.type = 'button';
+        label.className = 'tier-label';
+        label.style.background = tierColors[index % tierColors.length];
+        label.textContent = labelText;
+        label.title = 'Click to rename tier label';
+        label.addEventListener('click', () => {
+          const renamed = prompt('Rename this tier:', label.textContent);
+          if (renamed && renamed.trim()) {
+            label.textContent = renamed.trim();
+          }
+        });
+
+        const items = document.createElement('div');
+        items.className = 'tier-items';
+        enableDropZone(items);
+
+        row.append(label, items);
+        tierList.appendChild(row);
+      };
+
+      document.getElementById('add-item').addEventListener('click', () => {
+        const input = document.getElementById('item-input');
+        const value = input.value.trim();
+        if (!value) return;
+        itemPool.appendChild(createItem(value));
+        input.value = '';
+        input.focus();
+      });
+
+      document.getElementById('item-input').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') document.getElementById('add-item').click();
+      });
+
+      document.getElementById('add-row').addEventListener('click', () => {
+        const input = document.getElementById('row-input');
+        const value = input.value.trim();
+        if (!value) return;
+        renderTierRow(value, tierList.children.length);
+        input.value = '';
+        input.focus();
+      });
+
+      document.getElementById('row-input').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') document.getElementById('add-row').click();
+      });
+
+      enableDropZone(itemPool);
+      tiers.forEach((tier, i) => renderTierRow(tier, i));
+      ['Item 1', 'Item 2', 'Item 3'].forEach((item) => itemPool.appendChild(createItem(item)));
+    </script>
+  </body>
+</html>
