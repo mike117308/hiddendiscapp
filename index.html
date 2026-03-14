@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Friend Movie Ratings Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="top-header">
+        <h1>Friend Movie Ratings Tracker</h1>
+        <p>Add unlimited movies and compare scores between Mike, Eve, and Sky.</p>
+      </header>
+
+      <section class="layout-grid">
+        <aside class="panel form-panel">
+          <h2 id="form-title">Add / Edit Movie</h2>
+          <form id="movie-form">
+            <label>
+              Movie Title
+              <input id="movie-title" name="title" placeholder="Interstellar" required maxlength="120" />
+            </label>
+
+            <label>
+              Year
+              <input id="movie-year" name="year" type="number" placeholder="2014" min="1888" max="2100" />
+            </label>
+
+            <div class="score-grid">
+              <label>
+                Mike Score
+                <input id="score-mike" name="scoreMike" type="number" min="0" max="10" step="0.1" />
+              </label>
+              <label>
+                Eve Score
+                <input id="score-eve" name="scoreEve" type="number" min="0" max="10" step="0.1" />
+              </label>
+              <label>
+                Sky Score
+                <input id="score-sky" name="scoreSky" type="number" min="0" max="10" step="0.1" />
+              </label>
+            </div>
+
+            <label>
+              Notes
+              <textarea id="movie-notes" name="notes" rows="4" maxlength="2000"></textarea>
+            </label>
+
+            <div id="form-error" class="form-error" role="alert" aria-live="polite"></div>
+
+            <div class="button-row">
+              <button class="btn btn-primary" type="submit" id="save-btn">Add Movie</button>
+              <button class="btn" type="button" id="clear-btn">Clear</button>
+              <button class="btn btn-outline" type="button" id="sample-btn">Load Sample Data</button>
+            </div>
+          </form>
+        </aside>
+
+        <section class="content-column">
+          <div class="controls">
+            <input id="search-input" placeholder="Search movies" />
+            <select id="sort-select">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="avg">Highest Average</option>
+              <option value="spread">Most Controversial</option>
+            </select>
+            <select id="tag-filter">
+              <option value="all">All</option>
+              <option value="certified-banger">Certified Banger</option>
+              <option value="controversial">Controversial</option>
+              <option value="mid">Mid</option>
+            </select>
+          </div>
+
+          <div id="movie-list" class="movie-list"></div>
+          <div id="empty-state" class="panel empty-state hidden">No movies found. Add one on the left.</div>
+        </section>
+      </section>
+    </main>
+
+    <template id="movie-card-template">
+      <article class="panel movie-card">
+        <div class="movie-top">
+          <div>
+            <h3 class="movie-title"></h3>
+            <p class="movie-meta"></p>
+          </div>
+          <span class="badge"></span>
+        </div>
+
+        <table class="score-table">
+          <thead>
+            <tr>
+              <th>Friend</th>
+              <th>Score</th>
+              <th>Rank</th>
+            </tr>
+          </thead>
+          <tbody class="score-rows"></tbody>
+        </table>
+
+        <div class="movie-bottom">
+          <div>
+            <p class="label">Average</p>
+            <p class="avg-value"></p>
+          </div>
+          <div class="agreement-wrap">
+            <p class="label">Agreement</p>
+            <div class="agreement-track"><div class="agreement-bar"></div></div>
+          </div>
+          <div class="button-row compact">
+            <button class="btn btn-outline edit-btn">Edit</button>
+            <button class="btn delete-btn">Delete</button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
